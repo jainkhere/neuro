@@ -1,6 +1,3 @@
-#!/usr/bin/env python 
-
-
 import os
 import sys
 import shutil
@@ -10,6 +7,7 @@ import mahotas
 
 
 ########################################################################################################################
+"""COMMAND LINE ARGUMENTS FOR INPUT AND OUTPUT"""
 
 INPUTFOLDER = sys.argv[1]
 OUTFOLDER = sys.argv[2]
@@ -34,7 +32,7 @@ images = [f for f in sorted(os.listdir(path)) if '.tif' in f.lower()]
 for image in images:
     new_path = only_images_path + "/" + image
     shutil.copy(path + "/" + image, new_path)
-    #print("Image has been copied to the location: {}".format(new_path))
+    print("Image has been copied to the location: {}".format(new_path))
 print("All the .TIF images have been copied to the temporary folder {}".format(only_images_path))
 
 ########################################################################################################################
@@ -58,7 +56,7 @@ for i in images:
     # BASH COMMAMD FOR IMAGEMAGICK, -quiet is used to hide tif tag warning
 
     os.system("convert -quiet {} {}".format(img_input_path, img_output_path))
-    print("The converted image has been saved to {}".format(img_output_path))
+    #print("The converted image has been saved to {}".format(img_output_path))
 
 ########################################################################################################################
 
@@ -71,6 +69,14 @@ with open(path + "/" + images[0]) as f:
     lines = f.readlines()
     da = [i for i in lines if "pixelsize" in i.lower()]
     la = [i for i in lines if "tif" in i.lower()]
+    ofs = [i for i in lines if "offset" in i.lower()]
+    offset = ofs[0].split()
+    offset_a = offset[1]
+    offset_b = offset[2]
+    offset_c = 0
+    #offset_c = offset[3] IF THE INFO FILE HAS 3RD VALUE
+    #print(offset_a, offset_b)
+    #print(ofs)
     pixel_size = da[0].split()
     pixel_x = pixel_size[1]
     pixel_y = pixel_size[2]
@@ -121,7 +127,7 @@ array_out = {
             "key": "full",
             "resolution": [int(pixel_x), int(pixel_y), volume_data],
             "size": [width, height, slices],
-            "voxel_offset": [0, 0, 0]
+            "voxel_offset": [int(offset_a), int(offset_b), int(offset_c)]
         }
     ]
 
@@ -132,12 +138,17 @@ json_path = json_temp_folder.name
 with open('{}/data.json'.format(json_path), 'w') as f:
     json.dump(array_out, f)
 
+
+
+
+
 ########################################################################################################################
 
 """RUNNING NEUROGLANCER SCRIPTS"""
 
+#os.system("rm -r OUTFOLDER")
+#os.system("mkdir OUTFOLDER")
 os.system("generate-scales-info {}/data.json {}".format(json_path, OUTFOLDER))
-os.system("slices-to-precomputed --flat --input-orientation RPS {} {}".format(jpeg_path, OUTFOLDER))
+os.system("slices-to-precomputed --input-orientation RPS {} {}".format(jpeg_path, OUTFOLDER))
 os.system("compute-scales --flat {}".format(OUTFOLDER))
-
 

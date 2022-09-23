@@ -149,6 +149,6 @@ with open('{}/data.json'.format(json_path), 'w') as f:
 #os.system("rm -r OUTFOLDER")
 #os.system("mkdir OUTFOLDER")
 os.system("generate-scales-info {}/data.json {}".format(json_path, OUTFOLDER))
-os.system("slices-to-precomputed --input-orientation RPS {} {}".format(jpeg_path, OUTFOLDER))
+os.system("slices-to-precomputed --flat --input-orientation RPS {} {}".format(jpeg_path, OUTFOLDER))
 os.system("compute-scales --flat {}".format(OUTFOLDER))
 
